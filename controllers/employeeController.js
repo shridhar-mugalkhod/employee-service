@@ -34,7 +34,7 @@ exports.createEmployee = async (req,res) => {
         const doc = await Employee.create(req.body);
 
         res.status(201).json({
-        message: "Employee created successfuly"
+        message: "Employee created successfuly (done)."
         });
 
     } catch (error) {
