@@ -1,80 +1,55 @@
 const Employee  = require('../models/employee');
+const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
 
-exports.getAllEmployees = async (req,res) => {
-    try {
-        const employees = await Employee.find();
-        res.status(200).json({
-            employees: employees
-          });
-    } catch (error) {
-        res.status(500).json({message:`Something went wrong: ${error}`});
-    }    
-};
+exports.getAllEmployees = catchAsync(async (req,res,next) => {
+    const employees = await Employee.find();
+    res.status(200).json({
+        employees: employees
+    });
+})
 
-exports.getEmployee = async (req,res) => {
-    try {
-        const employee = await Employee.findById(req.params.id);
-        
-        if (!employee) {
-            return res.status(404).json({
-                message:"Employee not found."
-            })
-        }
-
-        res.status(200).json({
-            employee:employee
-        })
-    } catch (error) {
-        res.status(500).json({message:`Something went wrong: ${error}`});
+exports.getEmployee = catchAsync(async (req,res,next) => {
+    const employee = await Employee.findById(req.params.id);
+    
+    if (!employee) {
+        return next(new AppError('Employee not found.', 404));
     }
-};
 
-exports.createEmployee = async (req,res) => {
-    try {
-        const doc = await Employee.create(req.body);
+    res.status(200).json({
+        employee:employee
+    });
+})
 
-        res.status(201).json({
-        message: "Employee created successfuly (done)."
-        });
+exports.createEmployee = catchAsync(async (req,res,next) => {
+    const doc = await Employee.create(req.body);
 
-    } catch (error) {
-        res.status(500).json({message:`Something went wrong: ${error}`});
+    res.status(201).json({
+    message: "Employee created successfuly."
+    });
+})
+
+exports.deleteEmployee = catchAsync(async (req,res,next) =>{
+    const employee = await Employee.findByIdAndDelete(req.params.id);
+
+    if (!employee) {
+        return next(new AppError('Employee not found.', 404));
     }
-};
 
-exports.deleteEmployee = async (req,res) =>{
-    try {
-        const employee = await Employee.findByIdAndDelete(req.params.id);
+    res.status(200).json({message:"Employee deleted successfully."});
+})
 
-        if (!employee) {
-            return res.status(404).json({message:"Employee not found."})
-        }
+exports.updateEmployee = catchAsync(async (req,res,next) =>{
+    const employee = await Employee.findByIdAndUpdate(req.params.id, req.body,{
+        new:true,
+        runValidators:true
+    });
 
-        res.status(200).json({message:"Employee deleted successfully."});
-
-    } catch (error) {
-        res.status(500).json({message:`Something went wrong: ${error}`});
+    if (!employee) {
+        return next(new AppError('Employee not found.', 404));
     }
-};
 
-exports.updateEmployee = async (req,res) =>{
-    try {
-        const employee = await Employee.findByIdAndUpdate(req.params.id, req.body,{
-            new:true,
-            runValidators:true
-        });
-
-        if (!employee) {
-            return res.status(404).json({
-                message:"Employee not found."
-            })
-        }
-
-        res.status(200).json({
-            message:"Emplyee details updated successful."
-        })
-
-    } catch (error) {
-        res.status(500).json({message:`Something went wrong: ${error}`});
-    }
-};
+    res.status(200).json({
+        message:"Emplyee details updated successful."
+    })
+})
